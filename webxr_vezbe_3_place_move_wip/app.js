@@ -155,11 +155,6 @@ class App {
                 label.div.style.transform = "translate(-50%, -50%) translate(" + x + "px," + y + "px)";
             })
 
-
-          if (this.fly) {
-            this.fly.updatePosition();
-          }  
-          
           /** Render the scene with THREE.WebGLRenderer. */
           this.renderer.render(this.scene, this.camera)
         }
@@ -185,14 +180,8 @@ class App {
 
         /** Initialize our demo scene. */
         this.scene = new THREE.Scene();
-
         this.reticle = new Reticle();
-
-        this.fly = new Fly();
-
         this.scene.add(this.reticle);
-
-        this.scene.add(this.fly);
 
         /** We'll update the camera matrices directly from API, so
          * disable matrix auto updates so three.js doesn't attempt
