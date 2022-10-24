@@ -155,15 +155,9 @@ class App {
                 label.div.style.transform = "translate(-50%, -50%) translate(" + x + "px," + y + "px)";
             })
 
-
-        if (this.fly) {
-             this.fly.updatePosition();
-        }  
-    
           /** Render the scene with THREE.WebGLRenderer. */
           this.renderer.render(this.scene, this.camera)
-    }
-
+        }
     }
 
     /**
@@ -186,13 +180,7 @@ class App {
 
         /** Initialize our demo scene. */
         this.scene = new THREE.Scene();
-
         this.reticle = new Reticle();
-
-        this.fly = new Fly();
-
-        this.scene.add(this.fly);
-
         this.scene.add(this.reticle);
 
         /** We'll update the camera matrices directly from API, so
@@ -206,34 +194,33 @@ class App {
     /** Place a ... when the screen is tapped. */
     onSelect = () => {
         if (this.reticle.visible) {
-            // let text = document.createElement('div');
+            let text = document.createElement('div');
 
-            // text.className = 'label';
+            text.className = 'label';
 
-            // text.style.color = 'rgb(255,255,255)';
+            text.style.color = 'rgb(255,255,255)';
 
-            // text.style.position = 'absolute';
+            text.style.position = 'absolute';
 
-            // text.style.top = 0;
+            text.style.top = 0;
 
-            // text.textContent = `Point ${this.pointCount}`;
+            text.textContent = `Point ${this.pointCount}`;
 
-            // document.querySelector('#container').appendChild(text);
+            document.querySelector('#container').appendChild(text);
 
-            // this.pointCount++;
+            this.pointCount++;
 
-            // let point = new THREE.Vector3();
+            let point = new THREE.Vector3();
 
-            // point.copy(this.reticle.position);
+            point.copy(this.reticle.position);
 
-            // this.labels.push({div: text, point})
+            this.labels.push({div: text, point})
 
-            // const measurementPoint = createMeasurementPoint(point);
+            const measurementPoint = createMeasurementPoint(point);
 
-            // this.measurementPoint = measurementPoint;
+            this.measurementPoint = measurementPoint;
 
-            // this.scene.add(measurementPoint);
-
+            this.scene.add(measurementPoint);
         }
     }
 
