@@ -33,20 +33,38 @@ class Fly extends THREE.Object3D {
 
         this.add(sphere);
 
-        this.position.set(0, 1, 0);
+        this.position.set(0, 2, 0);
 
         this.visible = true;
+
+        const tetha = Math.random() * Math.PI;
+
+        const phi = Math.random() * Math.PI * 2;
+
+        const velocity = 0.01;
+
+        this.direction = {
+            velocity,
+            tetha,
+            phi
+        }
     }
 
     updatePosition = () => {
-        const {x, y, z} = this.position;
+        const { x, y, z } = this.position;
 
-        const dx = (Math.random() - 0.5) / 100;
+        const { velocity, tetha, phi } = this.direction;
 
-        const dy = (Math.random() - 0.5) / 100;
+        /** forward/backward direction */
+        const dz = velocity * Math.sin(tetha) * Math.cos(phi);
 
-        const dz = (Math.random() - 0.5) / 100;
+        /** left/right direction */
+        const dx = velocity * Math.sin(tetha) * Math.sin(phi);
 
-        this.position.set(x + dx, y + dy, z + dz);
+        /** up/down direction */
+        // const dy = velocity * Math.cos(tetha);
+
+
+        this.position.set(x + dx, y, z + dz);
     }
 }
