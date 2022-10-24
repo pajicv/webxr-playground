@@ -11,3 +11,12 @@ function toScreenPosition(point, camera) {
 
     return vector;
 }
+
+
+function getCameraDirectionVector(quaternion) {
+    const vector = new THREE.Vector3(0, 0, -1);
+
+    vector.applyQuaternion(quaternion);
+
+    return vector;
+}

@@ -6,7 +6,7 @@ function onNoXRDevice() {
  * Query for WebXR support. If there's no support for the `immersive-ar` mode,
  * show an error.
  */
-(async function() {
+(async function () {
     const isArSessionSupported =
         navigator.xr &&
         navigator.xr.isSessionSupported &&
@@ -23,22 +23,6 @@ function onNoXRDevice() {
  * and handle rendering on every frame.
  */
 class App {
-    constructor() {
-        this.pointCount = 1;
-
-        this.labels = [];
-
-        this.measurementPoint = null;
-
-        /** Create overlay container. */
-        this.initLabelContainer();
-
-        document.getElementById("move-back").addEventListener("click", this.movePointBackward)
-
-        document.getElementById("move-forward").addEventListener("click", this.movePointForward)
-
-        document.getElementById("place-point").addEventListener("click", this.onSelect)
-    }
 
     /**
      * Run when the Start AR button is pressed.
@@ -46,8 +30,8 @@ class App {
     activateXR = async () => {
         try {
             this.xrSession = await navigator.xr.requestSession("immersive-ar", {
-              requiredFeatures: ['hit-test', 'dom-overlay'],
-              domOverlay: { root: document.body }
+                requiredFeatures: ['hit-test', 'dom-overlay'],
+                domOverlay: { root: document.body }
             });
 
             /** Create the canvas that will contain our camera's background and our virtual scene. */
@@ -55,7 +39,7 @@ class App {
 
             /** With everything set up, start the app. */
             await this.onSessionStarted();
-        } catch(e) {
+        } catch (e) {
             console.log(e);
             onNoXRDevice();
         }
@@ -67,7 +51,7 @@ class App {
     createXRCanvas() {
         this.canvas = document.createElement("canvas");
         document.body.appendChild(this.canvas);
-        this.gl = this.canvas.getContext("webgl", {xrCompatible: true});
+        this.gl = this.canvas.getContext("webgl", { xrCompatible: true });
 
         this.xrSession.updateRenderState({
             baseLayer: new XRWebGLLayer(this.xrSession, this.gl)
@@ -98,7 +82,7 @@ class App {
         /** Start a rendering loop using this.onXRFrame. */
         this.xrSession.requestAnimationFrame(this.onXRFrame);
 
-        // this.xrSession.addEventListener("select", this.onSelect);
+        this.xrSession.addEventListener("select", this.onSelect);
     }
 
     /**
@@ -120,49 +104,35 @@ class App {
         const pose = frame.getViewerPose(this.localReferenceSpace);
 
         if (pose) {
-          /** In mobile AR, we only have one view. */
-          const view = pose.views[0];
 
-          const viewport = this.xrSession.renderState.baseLayer.getViewport(view);
-          this.renderer.setSize(viewport.width, viewport.height)
+            /** In mobile AR, we only have one view. */
+            const view = pose.views[0];
 
-          /** Use the view's transform matrix and projection matrix to configure the THREE.camera. */
-          this.camera.matrix.fromArray(view.transform.matrix)
-          this.camera.projectionMatrix.fromArray(view.projectionMatrix);
-          this.camera.updateMatrixWorld(true);
+            this.laserDirection = view;
 
-          /** Conduct hit test. */
-          const hitTestResults = frame.getHitTestResults(this.hitTestSource);
+            const viewport = this.xrSession.renderState.baseLayer.getViewport(view);
 
-          /** If we have results, consider the environment stabilized. */
-          if (!this.stabilized && hitTestResults.length > 0) {
-            this.stabilized = true;
-            document.body.classList.add('stabilized');
-          }
-          if (hitTestResults.length > 0) {
-            const hitPose = hitTestResults[0].getPose(this.localReferenceSpace);
+            this.renderer.setSize(viewport.width, viewport.height);
 
-            /** Update the reticle position. */
-            this.reticle.visible = true;
-            this.reticle.position.set(hitPose.transform.position.x, hitPose.transform.position.y, hitPose.transform.position.z)
-            this.reticle.updateMatrixWorld(true);
+            /** Use the view's transform matrix and projection matrix to configure the THREE.camera. */
+            this.camera.matrix.fromArray(view.transform.matrix);
+
+            this.camera.projectionMatrix.fromArray(view.projectionMatrix);
+
+            this.camera.updateMatrixWorld(true);
+
+            if (this.fly) {
+                this.fly.updatePosition();
+                this.fly.updateMovement();
+            }
+
+            if (this.laser) {
+                this.laser.update();
+            }
+
+            /** Render the scene with THREE.WebGLRenderer. */
+            this.renderer.render(this.scene, this.camera)
         }
-
-            this.labels.map((label) => {
-                let pos = toScreenPosition(label.point, this.camera);
-                let x = pos.x;
-                let y = pos.y;
-                label.div.style.transform = "translate(-50%, -50%) translate(" + x + "px," + y + "px)";
-            })
-
-
-        if (this.fly) {
-             this.fly.updatePosition();
-        }  
-    
-          /** Render the scene with THREE.WebGLRenderer. */
-          this.renderer.render(this.scene, this.camera)
-    }
 
     }
 
@@ -187,13 +157,9 @@ class App {
         /** Initialize our demo scene. */
         this.scene = new THREE.Scene();
 
-        this.reticle = new Reticle();
-
         this.fly = new Fly();
 
         this.scene.add(this.fly);
-
-        this.scene.add(this.reticle);
 
         /** We'll update the camera matrices directly from API, so
          * disable matrix auto updates so three.js doesn't attempt
@@ -205,60 +171,13 @@ class App {
 
     /** Place a ... when the screen is tapped. */
     onSelect = () => {
-        if (this.reticle.visible) {
-            // let text = document.createElement('div');
-
-            // text.className = 'label';
-
-            // text.style.color = 'rgb(255,255,255)';
-
-            // text.style.position = 'absolute';
-
-            // text.style.top = 0;
-
-            // text.textContent = `Point ${this.pointCount}`;
-
-            // document.querySelector('#container').appendChild(text);
-
-            // this.pointCount++;
-
-            // let point = new THREE.Vector3();
-
-            // point.copy(this.reticle.position);
-
-            // this.labels.push({div: text, point})
-
-            // const measurementPoint = createMeasurementPoint(point);
-
-            // this.measurementPoint = measurementPoint;
-
-            // this.scene.add(measurementPoint);
-
+        if (!this.laserDirection) {
+            return;
         }
-    }
 
-    initLabelContainer = () => {
-        const labelContainer = document.createElement('div');
+        this.laser = new Laser(this.laserDirection.transform.position, this.laserDirection.transform.orientation);
 
-        labelContainer.style.position = 'absolute';
-
-        labelContainer.style.top = '0px';
-
-        labelContainer.style.pointerEvents = 'none';
-
-        labelContainer.setAttribute('id', 'container');
-
-        document.body.appendChild(labelContainer);
-    }
-
-    movePointBackward = () => {
-        const {x, y, z} = this.measurementPoint.position;
-        this.measurementPoint.position.set(x, y, z - 0.1);
-    }
-
-    movePointForward = () => {
-        const {x, y, z} = this.measurementPoint.position;
-        this.measurementPoint.position.set(x, y, z + 0.1);
+        this.scene.add(this.laser);
     }
 }
 
